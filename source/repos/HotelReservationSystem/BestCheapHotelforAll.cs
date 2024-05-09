@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
-public class Hotel
+class Hotel
 {
     public string Name { get; set; }
     public int Rating { get; set; }
@@ -22,7 +23,7 @@ public class Hotel
     }
 }
 
-public class HotelBookingSystem
+class HotelBookingSystem
 {
     private List<Hotel> hotels;
 
@@ -40,9 +41,24 @@ public class HotelBookingSystem
 
     public Hotel FindCheapestHotel(DateTime checkinDate, DateTime checkoutDate, bool isRewardsCustomer)
     {
+        if (checkinDate >= checkoutDate)
+        {
+            throw new ArgumentException("Checkout date must be after the check-in date.");
+        }
+
+        if (checkinDate.Date < DateTime.Today || checkoutDate.Date < DateTime.Today)
+        {
+            throw new ArgumentException("Check-in and checkout dates cannot be in the past.");
+        }
+
         int weekdayCount = (int)(checkoutDate - checkinDate).TotalDays - Enumerable.Range(0, (int)(checkoutDate - checkinDate).TotalDays)
             .Count(i => checkinDate.AddDays(i).DayOfWeek == DayOfWeek.Saturday || checkinDate.AddDays(i).DayOfWeek == DayOfWeek.Sunday);
         int weekendCount = (int)(checkoutDate - checkinDate).TotalDays - weekdayCount;
+
+        if (weekdayCount < 0 || weekendCount < 0)
+        {
+            throw new ArgumentException("Invalid date range. Please provide valid dates.");
+        }
 
         Hotel cheapestHotel = hotels
             .OrderBy(hotel => CalculateTotalCost(hotel, weekdayCount, weekendCount, isRewardsCustomer))
@@ -66,12 +82,65 @@ class Program
 
         HotelBookingSystem bookingSystem = new HotelBookingSystem(hotels);
 
-        DateTime checkinDate = new DateTime(2024, 5, 15);
-        DateTime checkoutDate = new DateTime(2024, 5, 18);
-        bool isRewardsCustomer = true; // Set to true if the customer is a rewards member
+        try
+        {
+            DateTime checkinDate = GetValidDate("Enter check-in date (e.g., 11Sep2020 or YYYY-MM-DD): ");
+            DateTime checkoutDate = GetValidDate("Enter checkout date (e.g., 11Sep2020 or YYYY-MM-DD): ");
 
-        Hotel cheapestHotel = bookingSystem.FindCheapestHotel(checkinDate, checkoutDate, isRewardsCustomer);
+            bool isRewardsCustomer = GetValidCustomerType();
 
-        Console.WriteLine("Cheapest hotel for the given date range is: " + cheapestHotel.Name);
+            Hotel cheapestHotel = bookingSystem.FindCheapestHotel(checkinDate, checkoutDate, isRewardsCustomer);
+
+            Console.WriteLine("Cheapest hotel for the given date range is: " + cheapestHotel.Name);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine("Error: " + ex.Message);
+        }
+    }
+
+    static DateTime GetValidDate(string message)
+    {
+        DateTime date;
+        bool isValidDate;
+
+        do
+        {
+            Console.Write(message);
+            string inputDate = Console.ReadLine().Trim();
+
+            // Try parsing date in "ddMMMyyyy" format (e.g., 11Sep2020)
+            isValidDate = DateTime.TryParseExact(inputDate, "ddMMMyyyy", null, System.Globalization.DateTimeStyles.None, out date);
+
+            // If parsing fails, try parsing date in "YYYY-MM-DD" format
+            if (!isValidDate)
+            {
+                isValidDate = DateTime.TryParse(inputDate, out date);
+            }
+
+            if (!isValidDate)
+            {
+                Console.WriteLine("Invalid date format. Please enter a valid date in either '11Sep2020' or 'YYYY-MM-DD' format.");
+            }
+        } while (!isValidDate);
+
+        return date;
+    }
+
+    static bool GetValidCustomerType()
+    {
+        string input;
+        do
+        {
+            Console.Write("Are you a rewards customer? (yes/no): ");
+            input = Console.ReadLine().Trim().ToLower();
+
+            if (input != "yes" && input != "no")
+            {
+                Console.WriteLine("Invalid input. Please enter 'yes' or 'no'.");
+            }
+        } while (input != "yes" && input != "no");
+
+        return input == "yes";
     }
 }

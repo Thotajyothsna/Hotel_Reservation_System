@@ -6,20 +6,26 @@ using System.Threading.Tasks;
 
 namespace HotelReservationSystem
 {
+
     public class Hotel
     {
-        public string Hotel_Name;
-        public int Hotel_Ratings;
-        public int Weekday_Rates;
-        public int Weekend_Rates;
-        public Hotel(string hotel_name,int hotel_rating,int weekday_rates,int weekend_rates)
-        { 
-            Hotel_Name = hotel_name;
-            Hotel_Ratings = hotel_rating;
-            Weekday_Rates = weekday_rates;
-            Weekend_Rates = weekend_rates;
-            
+        public string Name { get; set; }
+        public int Rating { get; set; }
+        public int WeekdayRateRegular { get; set; }
+        public int WeekendRateRegular { get; set; }
+        public int WeekdayRateRewards { get; set; }
+        public int WeekendRateRewards { get; set; }
+
+        public Hotel(string name, int rating, int weekdayRateRegular, int weekendRateRegular, int weekdayRateRewards, int weekendRateRewards)
+        {
+            Name = name;
+            Rating = rating;
+            WeekdayRateRegular = weekdayRateRegular;
+            WeekendRateRegular = weekendRateRegular;
+            WeekdayRateRewards = weekdayRateRewards;
+            WeekendRateRewards = weekendRateRewards;
         }
-        
     }
+
+
 }
